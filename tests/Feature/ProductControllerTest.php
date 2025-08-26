@@ -135,8 +135,13 @@ class ProductControllerTest extends TestCase
     public function test_show_product_not_found()
     {
         $response = $this->authenticatedRequest('GET', '/api/products/99999', $this->adminUser);
-
-        $response->assertStatus(404);
+        $response_data = $response->json();
+        $response->assertStatus(200);
+        $response->assertJson([
+                'code' => 404,
+                'status' => 'error',
+                'message' => 'Resource not found'
+            ]);
     }
 
     /**
@@ -238,9 +243,14 @@ class ProductControllerTest extends TestCase
         ];
 
         $response = $this->authenticatedRequest('POST', '/api/products', $this->adminUser, $invalidData);
-
-        $response->assertStatus(400)
+        $response_data = $response->json();
+        $response->assertStatus(200)
             ->assertJsonValidationErrors(['name', 'price', 'stock']);
+        $this->assertEquals(422, $response_data['code']);
+        $this->assertEquals('error', $response_data['status']);
+        $this->assertEquals('Product name is required.', $response_data['errors']['name'][0]);
+        $this->assertEquals('Product price must be a valid number.', $response_data['errors']['price'][0]);
+        $this->assertEquals('Product stock cannot be negative.', $response_data['errors']['stock'][0]);
     }
 
     /**
@@ -337,8 +347,9 @@ class ProductControllerTest extends TestCase
         ];
 
         $response = $this->authenticatedRequest('PUT', "/api/products/{$this->product->id}", $this->adminUser, $invalidData);
-
-        $response->assertStatus(400)
+        $response_data = $response->json();
+       // dd($response_data);
+        $response->assertStatus(200)
             ->assertJsonValidationErrors(['name', 'price', 'stock']);
     }
 
@@ -430,6 +441,11 @@ class ProductControllerTest extends TestCase
     {
         $response = $this->authenticatedRequest('DELETE', '/api/products/99999', $this->adminUser);
 
-        $response->assertStatus(404);
+        $response->assertStatus(200);
+        $response->assertJson([
+            'code' => 404,
+            'status' => 'error',
+            'message' => 'Resource not found'
+        ]);
     }
 }
