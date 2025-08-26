@@ -35,7 +35,7 @@ class ProductRequest extends FormRequest
                 'max:50',
                 Rule::unique('products', 'sku')->ignore($productId),
             ],
-            'image' => 'nullable|image:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'category' => 'nullable|string|max:100',
             'brand' => 'nullable|string|max:100',
             'is_active' => 'boolean',

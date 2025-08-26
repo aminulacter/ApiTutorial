@@ -14,7 +14,7 @@ class ProductPolicy
     public function viewAny(User $user): bool
     {
         $roles = $user->roles()->with('permissions')->get();
-        $role_names = $roles->pluck('name')->implode(',');
+        $role_names = $roles->pluck('name');
         if($role_names->contains('admin')){
             return true;
         }
@@ -31,7 +31,7 @@ class ProductPolicy
     public function view(User $user, Product $product): bool
     {
         $roles = $user->roles()->with('permissions')->get();
-        $role_names = $roles->pluck('name')->implode(',');
+        $role_names = $roles->pluck('name');
         if($role_names->contains('admin')){
             return true;
         }
@@ -48,7 +48,7 @@ class ProductPolicy
     public function create(User $user): bool
     {
         $roles = $user->roles()->with('permissions')->get();
-        $role_names = $roles->pluck('name')->implode(',');
+        $role_names = $roles->pluck('name');
         if($role_names->contains('admin')){
             return true;
         }
@@ -65,7 +65,7 @@ class ProductPolicy
     public function update(User $user, Product $product): bool
     {
         $roles = $user->roles()->with('permissions')->get();
-        $role_names = $roles->pluck('name')->implode(',');
+        $role_names = $roles->pluck('name');
         if($role_names->contains('admin')){
             return true;
         }
@@ -82,7 +82,7 @@ class ProductPolicy
     public function delete(User $user, Product $product): bool
     {
         $roles = $user->roles()->with('permissions')->get();
-        $role_names = $roles->pluck('name')->implode(',');
+        $role_names = $roles->pluck('name');
         if($role_names->contains('admin')){
             return true;
         }

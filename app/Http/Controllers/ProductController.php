@@ -8,6 +8,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends BaseController
 {
@@ -100,9 +101,26 @@ class ProductController extends BaseController
         if ($request->user()->cannot('create', Product::class)) {
             return $this->error('You are not authorized to create products',[],403);
         }
-        $product = Product::create($request->validated());
 
-        return $this->success('Product created successfully', new ProductResource($product));
+        try {
+            $validatedData = $request->validated();
+            
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $imagePath = $image->storeAs('products', $imageName, 'public');
+                $validatedData['image'] = $imagePath;
+            } else {
+                $validatedData['image'] = null;
+            }
+
+            $product = Product::create($validatedData);
+
+            return $this->success('Product created successfully', new ProductResource($product));
+        } catch (\Exception $e) {
+            return $this->error('Error creating product', [$e->getMessage()], 500);
+        }
     }
 
     /**
@@ -122,11 +140,35 @@ class ProductController extends BaseController
     public function update(ProductRequest $request, Product $product): JsonResponse
     {
         if (request()->user()->cannot('update', $product)) {
-            return $this->error('You are not authorized to view this product',[],403);
+            return $this->error('You are not authorized to update this product',[],403);
         }
-        $product->update($request->validated());
 
-        return $this->success('Product updated successfully', new ProductResource($product));
+        try {
+            $validatedData = $request->validated();
+            
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if it exists
+                if ($product->image && Storage::disk('public')->exists($product->image)) {
+                    Storage::disk('public')->delete($product->image);
+                }
+                
+                // Upload new image
+                $image = $request->file('image');
+                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $imagePath = $image->storeAs('products', $imageName, 'public');
+                $validatedData['image'] = $imagePath;
+            } else {
+                // If no new image is provided, keep the existing image
+                unset($validatedData['image']);
+            }
+
+            $product->update($validatedData);
+
+            return $this->success('Product updated successfully', new ProductResource($product));
+        } catch (\Exception $e) {
+            return $this->error('Error updating product', [$e->getMessage()], 500);
+        }
     }
 
     /**
@@ -134,12 +176,22 @@ class ProductController extends BaseController
      */
     public function destroy(Product $product): JsonResponse
     {
-        if (request()->user()->cannot('create', Product::class)) {
-            return $this->error('You are not authorized to create products',[],403);
+        if (request()->user()->cannot('delete', $product)) {
+            return $this->error('You are not authorized to delete products',[],403);
         }
-        $product->delete();
 
-        return $this->success('Product deleted successfully');
+        try {
+            // Delete associated image if it exists
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+            
+            $product->delete();
+
+            return $this->success('Product deleted successfully');
+        } catch (\Exception $e) {
+            return $this->error('Error deleting product', [$e->getMessage()], 500);
+        }
     }
 
     /**
