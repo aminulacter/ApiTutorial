@@ -1,0 +1,774 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Product API",
+    "description": "A comprehensive API for managing products with authentication, image uploads, and advanced filtering capabilities",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com",
+      "url": "https://example.com/support"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000/api",
+      "description": "Development server"
+    },
+    {
+      "url": "https://api.example.com/api",
+      "description": "Production server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Products",
+      "description": "Product management operations"
+    }
+  ],
+  "paths": {
+    "/products": {
+      "get": {
+        "summary": "Get list of products",
+        "description": "Retrieve a paginated list of products with filtering, searching, and sorting options",
+        "tags": ["Products"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter by product category",
+            "required": false,
+            "schema": {"type": "string", "example": "Electronics"}
+          },
+          {
+            "name": "brand",
+            "in": "query",
+            "description": "Filter by product brand",
+            "required": false,
+            "schema": {"type": "string", "example": "Apple"}
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "description": "Minimum price filter",
+            "required": false,
+            "schema": {"type": "number", "format": "float", "example": 10.00}
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "description": "Maximum price filter",
+            "required": false,
+            "schema": {"type": "number", "format": "float", "example": 1000.00}
+          },
+          {
+            "name": "in_stock",
+            "in": "query",
+            "description": "Filter by stock availability",
+            "required": false,
+            "schema": {"type": "string", "enum": ["true", "false"], "example": "true"}
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "description": "Filter by active status",
+            "required": false,
+            "schema": {"type": "boolean", "example": true}
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search in name, description, or SKU",
+            "required": false,
+            "schema": {"type": "string", "example": "iPhone"}
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "Sort field",
+            "required": false,
+            "schema": {"type": "string", "enum": ["name", "price", "created_at", "updated_at"], "example": "created_at"}
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "description": "Sort order",
+            "required": false,
+            "schema": {"type": "string", "enum": ["asc", "desc"], "example": "desc"}
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Number of items per page",
+            "required": false,
+            "schema": {"type": "integer", "example": 10}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 200},
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Products fetched successfully"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "products": {
+                          "type": "array",
+                          "items": {"$ref": "#/components/schemas/Product"}
+                        },
+                        "current_page": {"type": "integer", "example": 1},
+                        "last_page": {"type": "integer", "example": 5},
+                        "per_page": {"type": "integer", "example": 10},
+                        "total": {"type": "integer", "example": 50},
+                        "next_page_url": {"type": "string", "nullable": true},
+                        "prev_page_url": {"type": "string", "nullable": true},
+                        "filters_applied": {"type": "object"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized access",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/UnauthorizedError"}
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ServerError"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new product",
+        "description": "Create a new product with optional image upload",
+        "tags": ["Products"],
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {"$ref": "#/components/schemas/ProductCreate"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 200},
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Product created successfully"},
+                    "data": {"$ref": "#/components/schemas/Product"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ValidationError"}
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized access",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/UnauthorizedError"}
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ServerError"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "summary": "Get a specific product",
+        "description": "Retrieve details of a specific product by ID",
+        "tags": ["Products"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product ID",
+            "required": true,
+            "schema": {"type": "integer", "example": 1}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 200},
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Product fetched successfully"},
+                    "data": {"$ref": "#/components/schemas/Product"}
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized access",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/UnauthorizedError"}
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/NotFoundError"}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a product",
+        "description": "Update an existing product with optional image replacement",
+        "tags": ["Products"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product ID",
+            "required": true,
+            "schema": {"type": "integer", "example": 1}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {"$ref": "#/components/schemas/ProductUpdate"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 200},
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Product updated successfully"},
+                    "data": {"$ref": "#/components/schemas/Product"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ValidationError"}
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized access",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/UnauthorizedError"}
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/NotFoundError"}
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ServerError"}
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a product",
+        "description": "Delete a product and its associated image file",
+        "tags": ["Products"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product ID",
+            "required": true,
+            "schema": {"type": "integer", "example": 1}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 200},
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Product deleted successfully"}
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized access",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/UnauthorizedError"}
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/NotFoundError"}
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ServerError"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/categories": {
+      "get": {
+        "summary": "Get available categories",
+        "description": "Retrieve a list of all available product categories",
+        "tags": ["Products"],
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Categories retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean", "example": true},
+                    "data": {
+                      "type": "array",
+                      "items": {"type": "string", "example": "Electronics"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/brands": {
+      "get": {
+        "summary": "Get available brands",
+        "description": "Retrieve a list of all available product brands",
+        "tags": ["Products"],
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Brands retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 200},
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Brands fetched successfully"},
+                    "data": {
+                      "type": "array",
+                      "items": {"type": "string", "example": "Apple"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "required": ["id", "name", "price", "stock", "is_active", "created_at", "updated_at"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1,
+            "description": "Unique product identifier"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "iPhone 15 Pro",
+            "description": "Product name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true,
+            "example": "Latest iPhone with advanced features",
+            "description": "Product description"
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 999999.99,
+            "example": 999.99,
+            "description": "Product price"
+          },
+          "stock": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 999999,
+            "example": 100,
+            "description": "Available stock quantity"
+          },
+          "sku": {
+            "type": "string",
+            "maxLength": 50,
+            "nullable": true,
+            "example": "IPH15PRO-001",
+            "description": "Stock Keeping Unit"
+          },
+          "image": {
+            "type": "string",
+            "nullable": true,
+            "example": "products/1234567890_abc123.jpg",
+            "description": "Product image file path"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true,
+            "example": "Electronics",
+            "description": "Product category"
+          },
+          "brand": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true,
+            "example": "Apple",
+            "description": "Product brand"
+          },
+          "is_active": {
+            "type": "boolean",
+            "example": true,
+            "description": "Product active status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00.000000Z",
+            "description": "Product creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00.000000Z",
+            "description": "Product last update timestamp"
+          }
+        }
+      },
+      "ProductCreate": {
+        "type": "object",
+        "required": ["name", "price", "stock"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "iPhone 15 Pro",
+            "description": "Product name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true,
+            "example": "Latest iPhone with advanced features",
+            "description": "Product description"
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 999999.99,
+            "example": 999.99,
+            "description": "Product price"
+          },
+          "stock": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 999999,
+            "example": 100,
+            "description": "Available stock quantity"
+          },
+          "sku": {
+            "type": "string",
+            "maxLength": 50,
+            "nullable": true,
+            "example": "IPH15PRO-001",
+            "description": "Stock Keeping Unit (must be unique)"
+          },
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "description": "Product image file (jpeg, png, jpg, gif, svg, max 2MB)"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true,
+            "example": "Electronics",
+            "description": "Product category"
+          },
+          "brand": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true,
+            "example": "Apple",
+            "description": "Product brand"
+          },
+          "is_active": {
+            "type": "boolean",
+            "example": true,
+            "description": "Product active status"
+          }
+        }
+      },
+      "ProductUpdate": {
+        "type": "object",
+        "required": ["name", "price", "stock"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "iPhone 15 Pro Max",
+            "description": "Product name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true,
+            "example": "Updated description",
+            "description": "Product description"
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 999999.99,
+            "example": 1099.99,
+            "description": "Product price"
+          },
+          "stock": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 999999,
+            "example": 50,
+            "description": "Available stock quantity"
+          },
+          "sku": {
+            "type": "string",
+            "maxLength": 50,
+            "nullable": true,
+            "example": "IPH15PROMAX-001",
+            "description": "Stock Keeping Unit (must be unique)"
+          },
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "description": "New product image file (jpeg, png, jpg, gif, svg, max 2MB)"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true,
+            "example": "Electronics",
+            "description": "Product category"
+          },
+          "brand": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true,
+            "example": "Apple",
+            "description": "Product brand"
+          },
+          "is_active": {
+            "type": "boolean",
+            "example": true,
+            "description": "Product active status"
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 422,
+            "description": "Validation error code"
+          },
+          "status": {
+            "type": "string",
+            "example": "error",
+            "description": "Error status"
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed",
+            "description": "Error message"
+          },
+          "errors": {
+            "type": "object",
+            "description": "Field-specific validation errors",
+            "additionalProperties": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 403,
+            "description": "Unauthorized error code"
+          },
+          "status": {
+            "type": "string",
+            "example": "error",
+            "description": "Error status"
+          },
+          "message": {
+            "type": "string",
+            "example": "You are not authorized to perform this action",
+            "description": "Error message"
+          }
+        }
+      },
+      "NotFoundError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 404,
+            "description": "Not found error code"
+          },
+          "status": {
+            "type": "string",
+            "example": "error",
+            "description": "Error status"
+          },
+          "message": {
+            "type": "string",
+            "example": "Resource not found",
+            "description": "Error message"
+          }
+        }
+      },
+      "ServerError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 500,
+            "description": "Server error code"
+          },
+          "status": {
+            "type": "string",
+            "example": "error",
+            "description": "Error status"
+          },
+          "message": {
+            "type": "string",
+            "example": "Internal server error",
+            "description": "Error message"
+          },
+          "errors": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Error details"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter JWT token in the format: Bearer {token}"
+      }
+    }
+  }
+}
