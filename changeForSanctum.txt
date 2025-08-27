@@ -1,3 +1,36 @@
+Change for sanctum
+
+php artisan api:install
+////////////
+config/auth.php
+'defaults' => [
+        'guard' => env('AUTH_GUARD', 'web'),
+        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+    ],
+ 'guards' => [
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+      //  'api' => [
+      //      'driver' => 'token',
+      //      'provider' => 'users',
+      //      'hash' => true,
+      //  ],
+    ],
+	
+/////////////////
+routes/api.php
+
+	Route::middleware('auth:sanctum')->group(function () {
+    Route::get('user', [AuthController::class, 'user']);
+    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('refresh', [AuthController::class, 'refresh']);
+    Route::apiResource('products', ProductController::class);
+});
+	
+//AuthController
+
 <?php
 
 namespace App\Http\Controllers;
@@ -135,15 +168,7 @@ class AuthController extends BaseController
         return response()->json(['message' => 'Successfully logged out']);
     }
 
-    // public function refresh()
-    // {
-    //     // JWTAuth::refresh(); // This line was removed as per the new_code
-
-    //     return response()->json([
-    //         'token' => null, // No token refresh for Sanctum
-    //     ]);
-    // }
-
+   
     // Debug method to test token retrieval
     public function debugToken(Request $request)
     {
@@ -157,3 +182,4 @@ class AuthController extends BaseController
         ]);
     }
 }
+	

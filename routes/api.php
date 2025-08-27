@@ -10,10 +10,9 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
 // Use default auth:api middleware - the exception handler will catch failures
-Route::middleware('jwt.auth')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'user']);
     Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
     Route::apiResource('products', ProductController::class);
 });
 

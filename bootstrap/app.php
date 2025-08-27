@@ -25,9 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         // Register your custom JWT middleware
 
-        $middleware->alias([
-            'jwt.aminul' => \App\Http\Middleware\JWTAuthentication::class,
-        ]);
+      
        
         // $middleware->api(append: [
         //     'jwt.auth' => \App\Http\Middleware\JWTAuthentication::class,
