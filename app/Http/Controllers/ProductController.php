@@ -408,7 +408,7 @@ class ProductController extends BaseController
                 $image = $request->file('image');
                 $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
                 $imagePath = $image->storeAs('products', $imageName, 'public');
-                $validatedData['image'] = $imagePath;
+                $validatedData['image'] = 'storage/'.$imagePath;
             } else {
                 $validatedData['image'] = null;
             }
