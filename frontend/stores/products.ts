@@ -1,0 +1,275 @@
+import { defineStore } from 'pinia'
+
+interface Product {
+  id: number
+  name: string
+  description?: string
+  price: number
+  stock: number
+  sku?: string
+  image?: string
+  category?: string
+  brand?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+interface ProductsState {
+  products: Product[]
+  currentProduct: Product | null
+  loading: boolean
+  error: string | null
+  pagination: {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+  }
+  filters: {
+    category?: string
+    brand?: string
+    min_price?: number
+    max_price?: number
+    in_stock?: string
+    is_active?: boolean
+    search?: string
+    sort_by?: string
+    sort_order?: string
+  }
+}
+
+export const useProductsStore = defineStore('products', {
+  state: (): ProductsState => ({
+    products: [],
+    currentProduct: null,
+    loading: false,
+    error: null,
+    pagination: {
+      current_page: 1,
+      last_page: 1,
+      per_page: 10,
+      total: 0
+    },
+    filters: {}
+  }),
+
+  getters: {
+    hasProducts: (state) => state.products.length > 0,
+    totalProducts: (state) => state.pagination.total
+  },
+
+  actions: {
+    async fetchProducts(params: any = {}) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        
+        const config = useRuntimeConfig()
+        const authStore = useAuthStore()
+        
+        const queryParams = new URLSearchParams()
+        
+        // Add pagination params
+        if (params.page) queryParams.append('per_page', params.per_page || '10')
+        if (params.page) queryParams.append('page', params.page.toString())
+        
+        // Add filter params
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && key !== 'page' && key !== 'per_page') {
+            queryParams.append(key, value.toString())
+          }
+        })
+
+        const response = await $fetch(`${config.public.apiBase}/products?${queryParams}`, {
+          headers: {
+            'Authorization': `Bearer ${authStore.token}`
+          }
+        })
+
+        this.products = response.data.products
+        this.pagination = {
+          current_page: response.data.current_page,
+          last_page: response.data.last_page,
+          per_page: response.data.per_page,
+          total: response.data.total
+        }
+        this.filters = response.data.filters_applied || {}
+        
+        return { success: true, data: response }
+      } catch (error: any) {
+        this.error = error.data?.message || 'Failed to fetch products'
+        return { success: false, error: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchProduct(id: number) {
+      this.loading = true
+      this.error = null
+      
+      try {
+       
+        const config = useRuntimeConfig()
+        const authStore = useAuthStore()
+        
+        const response = await $fetch(`${config.public.apiBase}/products/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${authStore.token}`
+          }
+        })
+        console.log(response)
+        this.currentProduct = response.data
+        return { success: true, data: response }
+      } catch (error: any) {
+        this.error = error.data?.message || 'Failed to fetch product'
+        return { success: false, error: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createProduct(productData: FormData) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const { $fetch } = useNuxtApp()
+        const config = useRuntimeConfig()
+        const authStore = useAuthStore()
+        
+        const response = await $fetch(`${config.public.apiBase}/products`, {
+          method: 'POST',
+          body: productData,
+          headers: {
+            'Authorization': `Bearer ${authStore.token}`
+          }
+        })
+
+        // Refresh products list
+        await this.fetchProducts()
+        
+        return { success: true, data: response }
+      } catch (error: any) {
+        this.error = error.data?.message || 'Failed to create product'
+        return { success: false, error: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateProduct(id: number, productData: FormData) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        
+        const config = useRuntimeConfig()
+        const authStore = useAuthStore()
+        
+        const response = await $fetch(`${config.public.apiBase}/products/${id}`, {
+          method: 'POST',
+          body: productData,
+          headers: {
+            'Authorization': `Bearer ${authStore.token}`
+          }
+        })
+
+        // Update the product in the list
+        const index = this.products.findIndex(p => p.id === id)
+        if (index !== -1) {
+          this.products[index] = response.data
+        }
+        
+        if (this.currentProduct?.id === id) {
+          this.currentProduct = response.data
+        }
+        
+        return { success: true, data: response }
+      } catch (error: any) {
+        this.error = error.data?.message || 'Failed to update product'
+        return { success: false, error: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteProduct(id: number) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        
+        const config = useRuntimeConfig()
+        const authStore = useAuthStore()
+        
+        await $fetch(`${config.public.apiBase}/products/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${authStore.token}`
+          }
+        })
+
+        // Remove from products list
+        this.products = this.products.filter(p => p.id !== id)
+        
+        if (this.currentProduct?.id === id) {
+          this.currentProduct = null
+        }
+        
+        return { success: true }
+      } catch (error: any) {
+        this.error = error.data?.message || 'Failed to delete product'
+        return { success: false, error: this.error }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchCategories() {
+      try {
+       
+        const config = useRuntimeConfig()
+        const authStore = useAuthStore()
+        
+        const response = await $fetch(`${config.public.apiBase}/products/categories`, {
+          headers: {
+            'Authorization': `Bearer ${authStore.token}`
+          }
+        })
+
+        return { success: true, data: response.data }
+      } catch (error: any) {
+        return { success: false, error: error.data?.message || 'Failed to fetch categories' }
+      }
+    },
+
+    async fetchBrands() {
+      try {
+       
+        const config = useRuntimeConfig()
+        const authStore = useAuthStore()
+        
+        const response = await $fetch(`${config.public.apiBase}/products/brands`, {
+          headers: {
+            'Authorization': `Bearer ${authStore.token}`
+          }
+        })
+
+        return { success: true, data: response.data }
+      } catch (error: any) {
+        return { success: false, error: error.data?.message || 'Failed to fetch brands' }
+      }
+    },
+
+    clearError() {
+      this.error = null
+    },
+
+    clearCurrentProduct() {
+      this.currentProduct = null
+    }
+  }
+})
