@@ -33,7 +33,7 @@ class AuthController extends BaseController
         $user->roles()->attach($role->id);
 
         $token = JWTAuth::fromUser($user);
-        
+
         return response()->json([
             'message' => 'User registered successfully',
             'user' => $user,
@@ -63,23 +63,23 @@ class AuthController extends BaseController
             'permissions'=>$permissions
         ]);
     }
-    
+
     public function user()
     {
         $role=JWTAuth::user()->roles()->with('permissions')->get();
         $role_names = $role->pluck('name')->implode(',');
         $permissions=$role->pluck('permissions')->flatten()->pluck('name');
-        
+
         // Get token from request header or use JWT facade
         $token = request()->bearerToken() ?: (JWTAuth::getToken() ? JWTAuth::getToken()->get() : null);
-            
+
         return response()->json([
             'user'=>JWTAuth::user(),
             'token'=>$token,
             'roles'=>$role_names,
             'permissions'=>$permissions,
            // 'req'=>JWTAuth::getToken()->get(),
-           
+
         ]);
     }
 
