@@ -25,7 +25,7 @@
             <h1 class="text-3xl font-bold text-gray-900">{{ productsStore.currentProduct.name }}</h1>
             <p class="mt-2 text-gray-600">Product Details</p>
           </div>
-          <div class="flex space-x-3">
+          <div class="flex space-x-3" v-if="authStore.permissions.includes('products.create')">
             <button
               @click="toggleEditMode"
               class="btn-secondary"
@@ -55,9 +55,9 @@
           <div>
             <h3 class="text-lg font-medium text-gray-900 mb-4">Product Image</h3>
             <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-200">
-              <img 
-                v-if="productsStore.currentProduct.image" 
-                :src="productsStore.currentProduct.image" 
+              <img
+                v-if="productsStore.currentProduct.image"
+                :src="productsStore.currentProduct.image"
                 :alt="productsStore.currentProduct.name"
                 class="h-full w-full object-cover object-center"
               />
@@ -78,25 +78,25 @@
                   <dt class="text-sm font-medium text-gray-500">Name</dt>
                   <dd class="mt-1 text-sm text-gray-900">{{ productsStore.currentProduct.name }}</dd>
                 </div>
-                
+
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Description</dt>
                   <dd class="mt-1 text-sm text-gray-900">{{ productsStore.currentProduct.description || 'No description' }}</dd>
                 </div>
-                
+
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Price</dt>
                   <dd class="mt-1 text-lg font-bold text-gray-900">${{ productsStore.currentProduct.price }}</dd>
                 </div>
-                
+
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Stock</dt>
                   <dd class="mt-1 text-sm text-gray-900">
-                    <span 
+                    <span
                       :class="[
                         'px-2 py-1 text-xs font-medium rounded-full',
-                        productsStore.currentProduct.stock > 10 ? 'bg-green-100 text-green-800' : 
-                        productsStore.currentProduct.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
+                        productsStore.currentProduct.stock > 10 ? 'bg-green-100 text-green-800' :
+                        productsStore.currentProduct.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       ]"
                     >
@@ -104,26 +104,26 @@
                     </span>
                   </dd>
                 </div>
-                
+
                 <div v-if="productsStore.currentProduct.sku">
                   <dt class="text-sm font-medium text-gray-500">SKU</dt>
                   <dd class="mt-1 text-sm text-gray-900">{{ productsStore.currentProduct.sku }}</dd>
                 </div>
-                
+
                 <div v-if="productsStore.currentProduct.category">
                   <dt class="text-sm font-medium text-gray-500">Category</dt>
                   <dd class="mt-1 text-sm text-gray-900">{{ productsStore.currentProduct.category }}</dd>
                 </div>
-                
+
                 <div v-if="productsStore.currentProduct.brand">
                   <dt class="text-sm font-medium text-gray-500">Brand</dt>
                   <dd class="mt-1 text-sm text-gray-900">{{ productsStore.currentProduct.brand }}</dd>
                 </div>
-                
+
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Status</dt>
                   <dd class="mt-1 text-sm text-gray-900">
-                    <span 
+                    <span
                       :class="[
                         'px-2 py-1 text-xs font-medium rounded-full',
                         productsStore.currentProduct.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -133,12 +133,12 @@
                     </span>
                   </dd>
                 </div>
-                
+
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Created</dt>
                   <dd class="mt-1 text-sm text-gray-900">{{ formatDate(productsStore.currentProduct.created_at) }}</dd>
                 </div>
-                
+
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
                   <dd class="mt-1 text-sm text-gray-900">{{ formatDate(productsStore.currentProduct.updated_at) }}</dd>
@@ -384,6 +384,8 @@ const imageFile = ref(null)
 const imagePreview = ref(null)
 const imageInput = ref(null)
 
+const authStore = useAuthStore()
+
 const form = ref({
   name: '',
   description: '',
@@ -399,7 +401,7 @@ const form = ref({
 onMounted(async () => {
   const productId = parseInt(route.params.id)
   await productsStore.fetchProduct(productId)
-  
+
   if (productsStore.currentProduct) {
     initializeForm()
   }
@@ -433,41 +435,41 @@ const toggleEditMode = () => {
 
 const validateForm = () => {
   errors.value = {}
-  
+
   if (!form.value.name) {
     errors.value.name = 'Product name is required'
   } else if (form.value.name.length < 2) {
     errors.value.name = 'Product name must be at least 2 characters'
   }
-  
+
   if (form.value.description && form.value.description.length > 1000) {
     errors.value.description = 'Description must be less than 1000 characters'
   }
-  
+
   if (!form.value.price) {
     errors.value.price = 'Price is required'
   } else if (form.value.price < 0) {
     errors.value.price = 'Price must be positive'
   }
-  
+
   if (!form.value.stock) {
     errors.value.stock = 'Stock quantity is required'
   } else if (form.value.stock < 0) {
     errors.value.stock = 'Stock quantity must be positive'
   }
-  
+
   if (form.value.sku && form.value.sku.length > 50) {
     errors.value.sku = 'SKU must be less than 50 characters'
   }
-  
+
   if (form.value.category && form.value.category.length > 100) {
     errors.value.category = 'Category must be less than 100 characters'
   }
-  
+
   if (form.value.brand && form.value.brand.length > 100) {
     errors.value.brand = 'Brand must be less than 100 characters'
   }
-  
+
   return Object.keys(errors.value).length === 0
 }
 
@@ -478,12 +480,12 @@ const handleImageChange = (event) => {
       errors.value.image = 'Image size must be less than 2MB'
       return
     }
-    
+
     if (!file.type.startsWith('image/')) {
       errors.value.image = 'Please select a valid image file'
       return
     }
-    
+
     imageFile.value = file
     imagePreview.value = URL.createObjectURL(file)
     errors.value.image = null
@@ -492,28 +494,28 @@ const handleImageChange = (event) => {
 
 const handleSubmit = async () => {
   if (!validateForm()) return
-  
+
   loading.value = true
   error.value = ''
-  
+
   try {
     const formData = new FormData()
-    
+
     // Add form fields
     Object.keys(form.value).forEach(key => {
       if (form.value[key] !== null && form.value[key] !== '') {
         formData.append(key, form.value[key])
       }
     })
-    
+
     // Add image if selected
     if (imageFile.value) {
       formData.append('image', imageFile.value)
     }
     formData.append('_method', 'PUT')
-    
+
     const result = await productsStore.updateProduct(productsStore.currentProduct.id, formData)
-    
+
     if (result.success) {
       isEditMode.value = false
       errors.value = {}
@@ -532,10 +534,10 @@ const handleSubmit = async () => {
 
 const handleDelete = async () => {
   loading.value = true
-  
+
   try {
     const result = await productsStore.deleteProduct(productsStore.currentProduct.id)
-    
+
     if (result.success) {
       await router.push('/products')
     } else {

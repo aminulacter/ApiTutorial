@@ -21,7 +21,7 @@
         <div class="md:col-span-2">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
         </div>
-        
+
         <div class="md:col-span-2">
           <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
             Product Name *
@@ -207,7 +207,7 @@
 
 <script setup>
 definePageMeta({
-  middleware: 'auth'
+  middleware: ['auth', 'product']
 })
 
 const productsStore = useProductsStore()
@@ -233,41 +233,41 @@ const imageInput = ref(null)
 
 const validateForm = () => {
   errors.value = {}
-  
+
   if (!form.value.name) {
     errors.value.name = 'Product name is required'
   } else if (form.value.name.length < 2) {
     errors.value.name = 'Product name must be at least 2 characters'
   }
-  
+
   if (form.value.description && form.value.description.length > 1000) {
     errors.value.description = 'Description must be less than 1000 characters'
   }
-  
+
   if (!form.value.price) {
     errors.value.price = 'Price is required'
   } else if (form.value.price < 0) {
     errors.value.price = 'Price must be positive'
   }
-  
+
   if (!form.value.stock) {
     errors.value.stock = 'Stock quantity is required'
   } else if (form.value.stock < 0) {
     errors.value.stock = 'Stock quantity must be positive'
   }
-  
+
   if (form.value.sku && form.value.sku.length > 50) {
     errors.value.sku = 'SKU must be less than 50 characters'
   }
-  
+
   if (form.value.category && form.value.category.length > 100) {
     errors.value.category = 'Category must be less than 100 characters'
   }
-  
+
   if (form.value.brand && form.value.brand.length > 100) {
     errors.value.brand = 'Brand must be less than 100 characters'
   }
-  
+
   return Object.keys(errors.value).length === 0
 }
 
@@ -279,13 +279,13 @@ const handleImageChange = (event) => {
       errors.value.image = 'Image size must be less than 2MB'
       return
     }
-    
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
       errors.value.image = 'Please select a valid image file'
       return
     }
-    
+
     imageFile.value = file
     imagePreview.value = URL.createObjectURL(file)
     errors.value.image = null
@@ -294,27 +294,27 @@ const handleImageChange = (event) => {
 
 const handleSubmit = async () => {
   if (!validateForm()) return
-  
+
   loading.value = true
   error.value = ''
-  
+
   try {
     const formData = new FormData()
-    
+
     // Add form fields
     Object.keys(form.value).forEach(key => {
       if (form.value[key] !== null && form.value[key] !== '') {
         formData.append(key, form.value[key])
       }
     })
-    
+
     // Add image if selected
     if (imageFile.value) {
       formData.append('image', imageFile.value)
     }
-    
+
     const result = await productsStore.createProduct(formData)
-    
+
     if (result.success) {
       await router.push('/products')
     } else {

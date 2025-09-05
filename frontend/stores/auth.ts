@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('auth', {
     permissions: [],
     isAuthenticated: false
   }),
-
+ persist: true,
   getters: {
     hasPermission: (state: AuthState) => (permission: string) => {
       return state.permissions.includes(permission)
@@ -36,14 +36,14 @@ export const useAuthStore = defineStore('auth', {
     async login(email: string, password: string) {
       console.log(email, password)
       try {
-        
+
         const config = useRuntimeConfig()
         console.log(`${config.public.apiBase}/login`)
         const response = await $fetch(`${config.public.apiBase}/login`, {
           method: 'POST',
           body: { email, password }
         })
-       
+
         this.setAuthData(response)
         return { success: true, data: response }
       } catch (error: any) {
@@ -54,9 +54,9 @@ export const useAuthStore = defineStore('auth', {
 
     async register(name: string, email: string, password: string) {
       try {
-       
+
         const config = useRuntimeConfig()
-        
+
         const response = await $fetch(`${config.public.apiBase}/register`, {
           method: 'POST',
           body: { name, email, password }
@@ -71,9 +71,9 @@ export const useAuthStore = defineStore('auth', {
 
     async logout() {
       try {
-        
+
         const config = useRuntimeConfig()
-        
+
         if (this.token) {
           await $fetch(`${config.public.apiBase}/logout`, {
             method: 'POST',
@@ -91,9 +91,9 @@ export const useAuthStore = defineStore('auth', {
 
     async fetchUser() {
       try {
-      
+
         const config = useRuntimeConfig()
-        
+
         if (!this.token) return false
 
         const response = await $fetch(`${config.public.apiBase}/user`, {
