@@ -510,6 +510,7 @@ const handleSubmit = async () => {
     if (imageFile.value) {
       formData.append('image', imageFile.value)
     }
+    formData.append('_method', 'PUT')
     
     const result = await productsStore.updateProduct(productsStore.currentProduct.id, formData)
     
