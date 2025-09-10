@@ -312,7 +312,7 @@ const handleSubmit = async () => {
     if (imageFile.value) {
       formData.append('image', imageFile.value)
     }
-
+    console.log(formData)
     const result = await productsStore.createProduct(formData)
 
     if (result.success) {
@@ -321,6 +321,7 @@ const handleSubmit = async () => {
       error.value = result.error
     }
   } catch (err) {
+    console.log("error", err)
     error.value = 'An unexpected error occurred'
   } finally {
     loading.value = false

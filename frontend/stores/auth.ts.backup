@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('auth', {
     permissions: [],
     isAuthenticated: false
   }),
-  persist: true,
+ persist: true,
   getters: {
     hasPermission: (state: AuthState) => (permission: string) => {
       return state.permissions.includes(permission)
@@ -36,6 +36,7 @@ export const useAuthStore = defineStore('auth', {
     async login(email: string, password: string) {
       console.log(email, password)
       try {
+
         const config = useRuntimeConfig()
         console.log(`${config.public.apiBase}/login`)
         const response = await $fetch(`${config.public.apiBase}/login`, {
@@ -53,6 +54,7 @@ export const useAuthStore = defineStore('auth', {
 
     async register(name: string, email: string, password: string) {
       try {
+
         const config = useRuntimeConfig()
 
         const response = await $fetch(`${config.public.apiBase}/register`, {
@@ -69,6 +71,7 @@ export const useAuthStore = defineStore('auth', {
 
     async logout() {
       try {
+
         const config = useRuntimeConfig()
 
         if (this.token) {
@@ -88,6 +91,7 @@ export const useAuthStore = defineStore('auth', {
 
     async fetchUser() {
       try {
+
         const config = useRuntimeConfig()
 
         if (!this.token) return false
@@ -100,13 +104,7 @@ export const useAuthStore = defineStore('auth', {
 
         this.setAuthData(response)
         return true
-      } catch (error: any) {
-        // If token is expired or invalid, clear auth data
-        if (error.status === 401 || error.statusCode === 401) {
-          console.log('Token expired during user fetch, clearing auth data')
-          this.clearAuthData()
-          return false
-        }
+      } catch (error) {
         this.clearAuthData()
         return false
       }
@@ -147,60 +145,20 @@ export const useAuthStore = defineStore('auth', {
 
     async initializeAuth() {
       if (process.client) {
-        try {
-          const token = localStorage.getItem('auth_token')
-          const userStr = localStorage.getItem('auth_user')
-          const rolesStr = localStorage.getItem('auth_roles')
-          const permissionsStr = localStorage.getItem('auth_permissions')
+        const token = localStorage.getItem('auth_token')
+        const userStr = localStorage.getItem('auth_user')
+        const rolesStr = localStorage.getItem('auth_roles')
+        const permissionsStr = localStorage.getItem('auth_permissions')
 
-          if (token && userStr) {
-            // First, validate token expiration client-side
-            const { validateTokenExpiration } = await import('~/utils/tokenValidation')
-            const tokenValidation = validateTokenExpiration(token)
-            
-            if (!tokenValidation.isValid) {
-              console.log('Token expired during initialization, clearing auth data')
-              this.clearAuthData()
-              return
-            }
+        if (token && userStr) {
+          this.token = token
+          this.user = JSON.parse(userStr)
+          this.roles = rolesStr ? JSON.parse(rolesStr) : []
+          this.permissions = permissionsStr ? JSON.parse(permissionsStr) : []
+          this.isAuthenticated = true
 
-            this.token = token
-            
-            // Safely parse JSON data with error handling
-            try {
-              this.user = JSON.parse(userStr)
-            } catch (e) {
-              console.error('Error parsing user data from localStorage:', e)
-              this.clearAuthData()
-              return
-            }
-
-            try {
-              this.roles = rolesStr ? JSON.parse(rolesStr) : []
-            } catch (e) {
-              console.error('Error parsing roles data from localStorage:', e)
-              this.roles = []
-            }
-
-            try {
-              this.permissions = permissionsStr ? JSON.parse(permissionsStr) : []
-            } catch (e) {
-              console.error('Error parsing permissions data from localStorage:', e)
-              this.permissions = []
-            }
-
-            this.isAuthenticated = true
-
-            // Verify token is still valid by fetching user data (server-side validation)
-            const isValid = await this.fetchUser()
-            if (!isValid) {
-              // Token is invalid, redirect to login
-              await navigateTo('/login')
-            }
-          }
-        } catch (error) {
-          console.error('Error during auth initialization:', error)
-          this.clearAuthData()
+          // Verify token is still valid by fetching user data
+          await this.fetchUser()
         }
       }
     }

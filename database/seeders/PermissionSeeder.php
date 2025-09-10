@@ -48,6 +48,23 @@ class PermissionSeeder extends Seeder
                 'name' => 'products.delete',
                 'description' => 'Delete products',
             ],
+            //role permissions
+            [
+                'name' => 'roles.view',
+                'description' => 'View roles',
+            ],
+            [
+                'name' => 'roles.create',
+                'description' => 'Create roles',
+            ],
+            [
+                'name' => 'roles.edit',
+                'description' => 'Edit roles',
+            ],
+            [
+                'name' => 'roles.delete',
+                'description' => 'Delete roles',
+            ],
         ];
 
         foreach ($permissions as $permission) {

@@ -27,7 +27,7 @@ class RolePermissionSeeder extends Seeder
 
         // Editor gets view, create, edit permissions (no delete)
         $editorPermissions = Permission::whereIn('name', [
-            'users.view', 'users.create', 'users.edit',
+            'users.view', 'users.create',
             'products.view', 'products.create', 'products.edit'
         ])->get();
         $editorRole->permissions()->attach($editorPermissions->pluck('id'));

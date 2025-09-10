@@ -5,22 +5,35 @@
         <div class="flex justify-between h-16">
           <div class="flex items-center">
             <NuxtLink to="/" class="text-xl font-bold text-primary-600">
-              Product Manager
+              Admin Panel
             </NuxtLink>
           </div>
           
           <div class="flex items-center space-x-4">
+            <!-- Products -->
             <NuxtLink 
               to="/products" 
               class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
             >
               Products
             </NuxtLink>
+            
+            <!-- Users -->
             <NuxtLink 
-              to="/products/create" 
+              to="/users" 
               class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+              v-if="authStore.hasPermission('users.view')"
             >
-              Add Product
+              Users
+            </NuxtLink>
+            
+            <!-- Roles -->
+            <NuxtLink 
+              to="/roles" 
+              class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+              v-if="authStore.hasPermission('roles.view')"
+            >
+              Roles
             </NuxtLink>
             
             <div class="relative">
@@ -74,9 +87,17 @@ const route = useRoute()
 const showUserMenu = ref(false)
 const globalLoading = ref(false)
 
-// Initialize auth on app start
+// Initialize auth on app start with error handling
 onMounted(async () => {
-  await authStore.initializeAuth()
+  try {
+    await authStore.initializeAuth()
+  } catch (error) {
+    console.error('Error initializing auth:', error)
+    // Clear any corrupted localStorage data
+    if (process.client) {
+      localStorage.clear()
+    }
+  }
 })
 
 // Watch for route changes to close user menu
@@ -86,8 +107,14 @@ watch(() => route.path, () => {
 
 // Handle logout
 const handleLogout = async () => {
-  await authStore.logout()
-  await navigateTo('/login')
+  try {
+    await authStore.logout()
+    await navigateTo('/login')
+  } catch (error) {
+    console.error('Error during logout:', error)
+    // Force redirect to login even if logout fails
+    await navigateTo('/login')
+  }
 }
 
 // Global loading state
