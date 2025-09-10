@@ -144,7 +144,7 @@ definePageMeta({
 const route = useRoute()
 const authStore = useAuthStore()
 const rolesStore = useRolesStore()
-
+const { showSuccess, showError, showWarning, showInfo } = useToastNotification()
 // Fix: Handle route params properly
 const roleId = computed(() => {
   const id = route.params?.id
@@ -193,6 +193,7 @@ const updateRole = async () => {
   console.log('Update result:', result)
 
   if (result.success) {
+    showSuccess('Role updated successfully')
     // Redirect to role details
     await navigateTo(`/roles/${roleId.value}`)
   } else {

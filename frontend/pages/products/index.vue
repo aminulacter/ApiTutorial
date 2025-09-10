@@ -215,6 +215,7 @@ definePageMeta({
 
 const productsStore = useProductsStore()
 const router = useRouter()
+const { showError } = useToastNotification()
 
 const filters = ref({
   search: '',
@@ -224,7 +225,8 @@ const filters = ref({
   max_price: null,
   in_stock: '',
   sort_by: 'created_at',
-  sort_order: 'desc'
+  sort_order: 'desc',
+  page: 1
 })
 
 const categories = ref([])
@@ -245,26 +247,47 @@ onMounted(async () => {
 })
 
 const fetchProducts = async () => {
+console.log(filters.value)
   const params = { ...filters.value }
   Object.keys(params).forEach(key => {
     if (params[key] === '' || params[key] === null) {
       delete params[key]
     }
   })
-  await productsStore.fetchProducts(params)
+  
+  try {
+    await productsStore.fetchProducts(params)
+  } catch (error) {
+    showError('Failed to fetch products')
+    console.error('Error fetching products:', error)
+  }
 }
 
 const fetchCategories = async () => {
-  const result = await productsStore.fetchCategories()
-  if (result.success) {
-    categories.value = result.data
+  try {
+    const result = await productsStore.fetchCategories()
+    if (result.success) {
+      categories.value = result.data
+    } else {
+      showError('Failed to fetch categories')
+    }
+  } catch (error) {
+    showError('Failed to fetch categories')
+    console.error('Error fetching categories:', error)
   }
 }
 
 const fetchBrands = async () => {
-  const result = await productsStore.fetchBrands()
-  if (result.success) {
-    brands.value = result.data
+  try {
+    const result = await productsStore.fetchBrands()
+    if (result.success) {
+      brands.value = result.data
+    } else {
+      showError('Failed to fetch brands')
+    }
+  } catch (error) {
+    showError('Failed to fetch brands')
+    console.error('Error fetching brands:', error)
   }
 }
 
@@ -288,7 +311,8 @@ const clearFilters = () => {
 
 const changePage = (page) => {
   if (page >= 1 && page <= productsStore.pagination.last_page) {
-    fetchProducts({ ...filters.value, page })
+    filters.value.page = page
+    fetchProducts()
   }
 }
 
