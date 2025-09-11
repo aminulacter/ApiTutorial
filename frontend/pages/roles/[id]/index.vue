@@ -16,7 +16,7 @@
         </div>
         <div class="flex space-x-3">
           <NuxtLink
-            :to="`/roles/edit/${role?.id}`"
+            :to="`/roles/${role?.id}/edit`"
             class="btn-secondary"
             v-if="authStore.hasPermission('roles.update')"
           >

@@ -123,7 +123,7 @@
                     </svg>
                   </NuxtLink>
                   <NuxtLink
-                    :to="`/roles/edit/${role.id}`"
+                    :to="`/roles/${role.id}/edit`"
                     class="text-indigo-600 hover:text-indigo-500 p-1 rounded hover:bg-indigo-50"
                     v-if="authStore.hasPermission('roles.edit')"
                     title="Edit"

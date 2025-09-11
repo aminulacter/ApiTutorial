@@ -124,7 +124,7 @@
                     </svg>
                   </NuxtLink>
                   <NuxtLink
-                    :to="`/users/edit/${user.id}`"
+                    :to="`/users/${user.id}/edit`"
                     class="text-indigo-600 hover:text-indigo-500 p-1 rounded hover:bg-indigo-50"
                     v-if="authStore.hasPermission('users.edit')"
                     title="Edit"
