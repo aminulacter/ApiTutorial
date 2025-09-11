@@ -401,7 +401,7 @@ class RoleController extends BaseController
         if ($request->user()->cannot('update', $role)) {
             return $this->error('You are not authorized to update this role', [], 403);
         }
-
+        
         try {
             DB::beginTransaction();
 

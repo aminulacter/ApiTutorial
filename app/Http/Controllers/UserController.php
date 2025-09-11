@@ -424,7 +424,7 @@ class UserController extends BaseController
         if ($request->user()->cannot('update', $user)) {
             return $this->error('You are not authorized to update this user', [], 403);
         }
-
+        logger($request->all());
         try {
             DB::beginTransaction();
 

@@ -37,7 +37,7 @@ class UserPolicy
     public function update(User $user, User $model): bool
     {
         // Users can update their own profile or if they have users.update permission
-        return $user->id === $model->id || $user->hasPermission('users.update');
+        return $user->id === $model->id || $user->hasPermission('users.edit');
     }
 
     /**

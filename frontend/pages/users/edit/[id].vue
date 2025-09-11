@@ -172,7 +172,7 @@ const userId = computed(() => {
   const id = route.params?.id
   return Array.isArray(id) ? parseInt(id[0]) : parseInt(id || '0')
 })
-
+const { showSuccess, showError, showWarning, showInfo } = useToastNotification()
 // Form data
 const form = reactive({
   name: '',
@@ -240,6 +240,7 @@ const updateUser = async () => {
   console.log('Update result:', result)
 
   if (result.success) {
+    showSuccess('User updated successfully')
     // Redirect to user details
     await navigateTo(`/users/${userId.value}`)
   } else {
