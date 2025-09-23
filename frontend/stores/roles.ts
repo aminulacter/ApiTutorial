@@ -294,31 +294,20 @@ export const useRolesStore = defineStore('roles', {
 
     async fetchPermissions() {
       try {
-        // For now, we'll create a mock list of permissions
-        // In a real app, you might have a dedicated permissions endpoint
-        const mockPermissions = [
-          { id: 1, name: 'users.view', display_name: 'View Users' },
-          { id: 2, name: 'users.create', display_name: 'Create Users' },
-          { id: 3, name: 'users.update', display_name: 'Update Users' },
-          { id: 4, name: 'users.delete', display_name: 'Delete Users' },
-          { id: 5, name: 'roles.view', display_name: 'View Roles' },
-          { id: 6, name: 'roles.create', display_name: 'Create Roles' },
-          { id: 7, name: 'roles.update', display_name: 'Update Roles' },
-          { id: 8, name: 'roles.delete', display_name: 'Delete Roles' },
-          { id: 9, name: 'roles.assign_permissions', display_name: 'Assign Permissions' },
-          { id: 10, name: 'roles.remove_permissions', display_name: 'Remove Permissions' },
-          { id: 11, name: 'products.view', display_name: 'View Products' },
-          { id: 12, name: 'products.create', display_name: 'Create Products' },
-          { id: 13, name: 'products.update', display_name: 'Update Products' },
-          { id: 14, name: 'products.delete', display_name: 'Delete Products' }
-        ]
-
-        this.permissions = mockPermissions
-        return { success: true, data: mockPermissions }
+        const { apiCall } = useApi()
+        const result = await apiCall('/allPermissions')
+        if (result.success) {
+          this.permissions = result.data.data
+        } else {
+          this.error = result.error
+        }
+        return result
       } catch (error: any) {
-        return { success: false, error: error.data?.message || 'Failed to fetch permissions' }
+        this.error = 'Failed to fetch permissions'
+        return { success: false, error: this.error }
       }
     },
+        // For now, we'll create a mock list of permissions
 
     clearError() {
       this.error = null

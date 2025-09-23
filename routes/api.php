@@ -17,14 +17,15 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::apiResource('products', ProductController::class);
-    
+
     // User management routes
     Route::apiResource('users', UserController::class);
     Route::post('users/{user}/assign-roles', [UserController::class, 'assignRoles']);
     Route::delete('users/{user}/remove-roles', [UserController::class, 'removeRoles']);
-    
+
     // Role management routes
     Route::apiResource('roles', RoleController::class);
+    Route::get('allPermissions', [RoleController::class, 'allPermissions']);
     Route::post('roles/{role}/attach-permissions', [RoleController::class, 'attachPermissions']);
     Route::delete('roles/{role}/detach-permissions', [RoleController::class, 'detachPermissions']);
 });
