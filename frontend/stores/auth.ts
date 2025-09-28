@@ -114,6 +114,7 @@ export const useAuthStore = defineStore('auth', {
 
     setAuthData(data: any) {
       console.log(data)
+      useCookie('auth_token').value = data.token
       this.user = data.user
       this.token = data.token
       this.roles = Array.isArray(data.roles) ? data.roles : [data.roles]

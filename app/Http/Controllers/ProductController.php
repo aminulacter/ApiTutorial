@@ -412,7 +412,6 @@ class ProductController extends BaseController
             } else {
                 $validatedData['image'] = null;
             }
-
             $product = Product::create($validatedData);
 
             return $this->success('Product created successfully', new ProductResource($product));

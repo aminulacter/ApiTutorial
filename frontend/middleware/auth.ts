@@ -1,10 +1,11 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore()
-
+  console.log(useCookie('auth_token').value)
+  const token = useCookie('auth_token').value
   // Skip token validation for login and register pages
   if (to.path === '/login' || to.path === '/register') {
     // If user is already authenticated, redirect to home
-    if (authStore.isAuthenticated) {
+    if (authStore.isAuthenticated || token) {
       return navigateTo('/')
     }
     return

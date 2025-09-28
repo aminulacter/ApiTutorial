@@ -1,19 +1,19 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore()
-
+  const token = useCookie('auth_token').value
   // Check if user is authenticated
-  if (!authStore.isAuthenticated) {
+  if (!authStore.isAuthenticated || !token) {
     return navigateTo('/login')
   }
 
   // Verify token is still valid
-  if (authStore.token) {
+  if (authStore.token || token) {
     try {
       // Import token validation utility
       const { validateTokenExpiration } = await import('~/utils/tokenValidation')
       
       // Quick client-side validation first
-      const validation = validateTokenExpiration(authStore.token)
+      const validation = validateTokenExpiration(authStore.token || token)
       
       if (!validation.isValid) {
         console.log('Token expired in product middleware, clearing auth data')

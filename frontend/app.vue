@@ -122,3 +122,23 @@ provide('setGlobalLoading', (loading) => {
   globalLoading.value = loading
 })
 </script>
+<style>
+/* Page transition styles */
+.page-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.page-leave-active {
+  transition: all 0.2s ease-in;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+</style>
