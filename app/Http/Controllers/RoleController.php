@@ -401,7 +401,7 @@ class RoleController extends BaseController
         if ($request->user()->cannot('update', $role)) {
             return $this->error('You are not authorized to update this role', [], 403);
         }
-        
+
         try {
             DB::beginTransaction();
 
@@ -612,5 +612,9 @@ class RoleController extends BaseController
         } catch (\Exception $e) {
             return $this->error('Error detaching permissions', [$e->getMessage()], 500);
         }
+    }
+    public function allPermissions() {
+        $permissions = Permission::all();
+        return $this->success('All permissions fetched successfully', $permissions);
     }
 }
